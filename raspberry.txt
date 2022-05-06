@@ -1,0 +1,453 @@
+dc.py
+---------------------------------------------------------
+import RPi.GPIO as GPIO
+from time import sleep
+ 
+GPIO.setmode(GPIO.BOARD)
+ 
+Motor1A = 36
+Motor1B = 38
+Motor1E = 40
+ 
+GPIO.setup(Motor1A,GPIO.OUT)
+GPIO.setup(Motor1B,GPIO.OUT)
+GPIO.setup(Motor1E,GPIO.OUT)
+ 
+print ("Ileri hareket")
+GPIO.output(Motor1A,GPIO.HIGH)
+GPIO.output(Motor1B,GPIO.LOW)
+GPIO.output(Motor1E,GPIO.HIGH)
+ 
+sleep(2)
+ 
+print ("Geri hareket")
+GPIO.output(Motor1A,GPIO.LOW)
+GPIO.output(Motor1B,GPIO.HIGH)
+GPIO.output(Motor1E,GPIO.HIGH)
+ 
+sleep(2)
+ 
+print ("Motor durdu")
+GPIO.output(Motor1E,GPIO.LOW)
+ 
+GPIO.cleanup()
+------------------------------------------------------------------------------------------------------------------
+deneme.txt
+obexftp --nopath --noconn --uuid none --bluetooth F0:EE:10:9C:9D:9F --channel 12 -p /home/pi/Desktop/deneme.txt
+------------------------------------------------------------------------------------------------------------
+collected_data.py
+
+import RPi.GPIO as GPIO
+import os
+import time
+from w1thermsensor import W1ThermSensor
+from picamera import PiCamera
+from time import sleep
+import datetime
+#GPIO SETUP
+channel1 = 20
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(channel1, GPIO.IN)
+count1 = 0
+count2 = 0
+sensor = W1ThermSensor()
+
+while True:
+    f = open('soil.txt','a')
+    g = open('temperature.txt','a') 
+    def callback(channel1):
+        if GPIO.input(channel1):
+                print ("water Detected!")
+                f.write("water Detected!")
+                f.close()
+        else:
+                print ("no Water Detected!"+" \n")
+                f.write("no Water Detected! "+"\n")
+                f.close()
+ 
+    GPIO.add_event_detect(channel1, GPIO.BOTH, bouncetime=300)  # let us know when the pin goes HIGH or LOW
+    GPIO.add_event_callback(channel1, callback)
+    
+    temperature = sensor.get_temperature()
+    print("The temperature is %s celsius" % temperature)
+    g.write(str(temperature)+"\n")
+    g.close()
+    x = datetime.datetime.now()
+    camera = PiCamera()
+    camera.rotation=180
+    camera.start_preview()
+    sleep(1)
+    camera.capture('/home/pi/Desktop/pictures/'+str(x)+'.jpg')
+    camera.stop_preview()
+    
+    time.sleep(5)
+
+----------------------------------------------------------------------------------------------------------------------
+fire2.py
+import time
+import serial
+from firebase import firebase
+import RPi.GPIO as GPIO
+from time import sleep
+
+firebase = firebase.FirebaseApplication('https://parkme-1289.firebaseio.com/parkme-1289/', None)
+result = firebase.get('/Commands',None)
+print(result)
+x=0
+
+while x==0:
+    result = firebase.get('/Commands', None)
+    if result == '20' :
+        print ('Ok')
+        x=1
+    time.sleep(2)
+
+ser = serial.Serial(
+
+    port='/dev/ttyS0',
+    #baudrate = 9600,
+    baudrate = 38400,
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    bytesize=serial.EIGHTBITS,
+    timeout=1
+)
+counter=0
+
+
+#while 1:
+    #ser.write('Write counter: %d \n'%(counter))
+ser.write(str.encode('o'))
+time.sleep(4)
+#    ser.write(str.encode('c'))
+#    time.sleep(7)
+#counter += 1
+
+print("burası")
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+TRIG = 23
+ECHO = 24
+
+Motor1A = 16
+Motor1B = 20
+Motor1E = 21
+ 
+GPIO.setup(TRIG,GPIO.OUT)
+GPIO.setup(ECHO,GPIO.IN)
+GPIO.setup(Motor1A,GPIO.OUT)
+GPIO.setup(Motor1B,GPIO.OUT)
+GPIO.setup(Motor1E,GPIO.OUT)
+
+while True:
+
+  GPIO.output(TRIG, False)
+  time.sleep(0.5)
+  GPIO.output(TRIG, True)
+  time.sleep(0.00001)
+  GPIO.output(TRIG, False)
+
+  while GPIO.input(ECHO)==0:
+    pulse_start = time.time()
+
+  while GPIO.input(ECHO)==1:
+    pulse_end = time.time()
+
+  pulse_duration = pulse_end - pulse_start
+
+  distance = pulse_duration * 17150
+  distance = round(distance, 2)
+  print ("Mesafe:",distance - 0.5,"cm")
+  if(distance > 5):
+      print("aaaa")
+      GPIO.output(Motor1A,GPIO.LOW)
+      GPIO.output(Motor1B,GPIO.HIGH)
+      GPIO.output(Motor1E,GPIO.HIGH)
+ 
+#print "Geri hareket"
+#GPIO.output(Motor1A,GPIO.LOW)
+#GPIO.output(Motor1B,GPIO.HIGH)
+#GPIO.output(Motor1E,GPIO.HIGH)
+ 
+  else:
+      print("dur")
+      GPIO.output(Motor1E,GPIO.LOW)
+      #GPIO.cleanup()
+        
+    
+      ser.write(str.encode('c'))
+      time.sleep(4)
+-----------------------------------------------------------------------------------
+camera.py
+
+from picamera import PiCamera
+from time import sleep
+import datetime
+x = datetime.datetime.now()
+camera = PiCamera()
+camera.rotation=180
+camera.start_preview()
+sleep(5)
+
+-------------------------------------------
+heater.py
+import RPi.GPIO as GPIO
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+FAN_PIN = 21
+GPIO.setup(FAN_PIN, GPIO.OUT)
+GPIO.output(FAN_PIN, False)
+------------------------------------------------
+ilerle.py
+import RPi.GPIO as GPIO
+import time
+from time import sleep
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+TRIG = 23
+ECHO = 24
+
+Motor1A = 16
+Motor1B = 20
+Motor1E = 21
+ 
+GPIO.setup(TRIG,GPIO.OUT)
+GPIO.setup(ECHO,GPIO.IN)
+GPIO.setup(Motor1A,GPIO.OUT)
+GPIO.setup(Motor1B,GPIO.OUT)
+GPIO.setup(Motor1E,GPIO.OUT)
+
+while True:
+
+  GPIO.output(TRIG, False)
+  time.sleep(0.5)
+  GPIO.output(TRIG, True)
+  time.sleep(0.00001)
+  GPIO.output(TRIG, False)
+
+  while GPIO.input(ECHO)==0:
+    pulse_start = time.time()
+
+  while GPIO.input(ECHO)==1:
+    pulse_end = time.time()
+
+  pulse_duration = pulse_end - pulse_start
+
+  distance = pulse_duration * 17150
+  distance = round(distance, 2)
+  print ("Mesafe:",distance - 0.5,"cm")
+  if(distance > 15):
+      print("aaaa")
+      GPIO.output(Motor1A,GPIO.LOW)
+      GPIO.output(Motor1B,GPIO.HIGH)
+      GPIO.output(Motor1E,GPIO.HIGH)
+ 
+#print "Geri hareket"
+#GPIO.output(Motor1A,GPIO.LOW)
+#GPIO.output(Motor1B,GPIO.HIGH)
+#GPIO.output(Motor1E,GPIO.HIGH)
+ 
+  else:
+      print("dur")
+      GPIO.output(Motor1E,GPIO.LOW)
+      #GPIO.cleanup()
+------------------------------------------------------------
+valve.py
+import RPi.GPIO as GPIO
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+FAN_PIN = 20
+GPIO.setup(FAN_PIN, GPIO.OUT)
+GPIO.output(FAN_PIN, True)
+--------------------------------------------------------
+send.py
+
+import time
+import serial
+          
+      
+ser = serial.Serial(
+              
+    port='/dev/ttyS0',
+    #baudrate = 9600,
+    baudrate = 38400, 
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    bytesize=serial.EIGHTBITS,
+    timeout=1
+)
+counter=0
+  
+#ser.write(str.encode('o'))
+#time.sleep(5)
+#    ser.write(str.encode('o'))
+#    time.sleep(3)
+ser.write(str.encode('c'))
+time.sleep(5)
+
+    #ser.write('Write counter: %d \n'%(counter))
+    
+#counter += 1
+
+--------------------------------------------------------
+
+soilaverage.py
+
+import RPi.GPIO as GPIO
+import time
+ 
+#GPIO SETUP
+channel = 20
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(channel, GPIO.IN)
+count1 = 0
+count2 = 0
+def callback(channel):
+    count1 = 0
+    count2 = 0
+    if GPIO.input(channel):
+            count1 = count1+1
+            
+    else:
+            count2 = count2+1
+    
+    
+    if (count1+count2>10 and ((count1-count2)/(count1+count2))>0):
+            print ("no water Detected!")
+            count1=0
+            count2=0
+    else:
+            print (" Water Detected!")
+            count1=0
+            count2=0
+ 
+GPIO.add_event_detect(channel, GPIO.BOTH, bouncetime=300)  # let us know when the pin goes HIGH or LOW
+GPIO.add_event_callback(channel, callback)  # assign function to GPIO PIN, Run function on change
+ 
+# infinite loop
+while True:
+        time.sleep(1)
+
+
+------------------------------------------------------------------------------
+
+soil.py
+
+import RPi.GPIO as GPIO
+import time
+import os
+ 
+#GPIO SETUP
+channel = 16
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(channel, GPIO.IN)
+f = open("soil2.txt","a")
+def callback(channel):
+        if GPIO.input(channel):
+                print ("no water Detected!")
+                f.write("no water detected")
+        else:
+                print ("Water Detected!")
+                f.write("water detected")
+         
+
+# infinite loop
+while True:
+    callback(channel)
+    time.sleep(1)
+
+----------------------------------------------------------------------------
+fire.py
+
+
+from firebase import firebase
+import time
+
+x = 0
+firebase = firebase.FirebaseApplication('https://parkme-1289.firebaseio.com/parkme-1289/', None)
+
+
+print(result)
+while x == 0:
+    result = firebase.get('/parkme-1289', None)
+    if result == {'kaan': 20}:
+        print('Ok')
+        x == 1
+    time.sleep(8)
+
+
+----------------------------------------------------------------
+dist.py
+
+import RPi.GPIO as GPIO
+import time
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+TRIG = 23
+ECHO = 24
+
+print "HC-SR04 mesafe sensoru"
+
+GPIO.setup(TRIG,GPIO.OUT)
+GPIO.setup(ECHO,GPIO.IN)
+
+while True:
+
+  GPIO.output(TRIG, False)
+  print "Olculuyor..."
+  time.sleep(2)
+
+  GPIO.output(TRIG, True)
+  time.sleep(0.00001)
+  GPIO.output(TRIG, False)
+
+  while GPIO.input(ECHO)==0:
+    pulse_start = time.time()
+
+  while GPIO.input(ECHO)==1:
+    pulse_end = time.time()
+
+  pulse_duration = pulse_end - pulse_start
+
+  distance = pulse_duration * 17150
+  distance = round(distance, 2)
+
+  if distance > 2 and distance < 400:
+    print "Mesafe:",distance - 0.5,"cm"
+  else:
+    print "Menzil asildi"
+
+-------------------------------------------------
+temperature.py
+
+import time
+from w1thermsensor import W1ThermSensor
+sensor = W1ThermSensor()
+
+while True:
+    g = open("temperature2.txt","a")
+    temperature = sensor.get_temperature()
+    print("The temperature is %s celsius" % temperature)
+    g.write(str(temperature)+"\n")
+    g.close()
+    time.sleep(1)
+
+-----------------------------------------------------------------
+fan.py
+
+import RPi.GPIO as GPIO
+from time import sleep
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+FAN_PIN = 26
+GPIO.setup(FAN_PIN, GPIO.OUT)
+GPIO.output(FAN_PIN, False)
+sleep(5)
+GPIO.output(FAN_PIN, True)
+-------------------------------------------------------------------
